@@ -8,8 +8,8 @@ from torch.nn.utils.rnn import pad_sequence
 from IPython.core.debugger import set_trace
 
 
-BATCH_SIZE = 72
-NUM_WORKERS = 1
+BATCH_SIZE = 32
+NUM_WORKERS = 4
 
 def loader(dataf,labelf=None):
 
@@ -43,7 +43,7 @@ def loader(dataf,labelf=None):
         if torch.cuda.is_available():
             ld = data.DataLoader(\
                 dset, \
-                batch_size=BATCH_SIZE, \
+                batch_size=1, \
                 shuffle=False, \
                 drop_last=False, \
                 collate_fn=collate_test, \
@@ -51,7 +51,7 @@ def loader(dataf,labelf=None):
         else:
             ld = data.DataLoader(\
                 dset, \
-                batch_size=BATCH_SIZE, \
+                batch_size=1, \
                 shuffle=False, \
                 drop_last=False, \
                 collate_fn=collate_test)

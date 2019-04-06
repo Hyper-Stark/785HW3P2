@@ -33,7 +33,7 @@ model = Model(device = DEVICE)
 model.load_state_dict(torch.load("model.pt"))
 
 criterion = nn.CTCLoss()
-opt = optim.Adam(model.parameters(),lr=0.001,weight_decay=5e-4)
+opt = optim.Adam(model.parameters(),lr=0.0001)
 predictor = Predictor()
 
 _end_time = time.time()
@@ -68,9 +68,11 @@ for epoch in range(EPOCHS):
             len_of_labels.append(l.shape[0])
             concat_labels = torch.cat((concat_labels,l),0)
 
+        tlengths = torch.tensor(lengths).type(torch.IntTensor)
+        tlen_of_labels = torch.tensor(len_of_labels).type(torch.IntTensor)
         #loss
         labels = concat_labels.to(DEVICE)
-        loss = criterion(log_probs, labels, tuple(lengths), tuple(len_of_labels))
+        loss = criterion(log_probs, labels, tlengths, tlen_of_labels)
 
         #accumulate loss
         nl = loss.item()
