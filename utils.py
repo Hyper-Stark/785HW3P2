@@ -5,12 +5,14 @@ import torch.utils.data as data
 
 from dataset import Dataset
 from torch.nn.utils.rnn import pad_sequence
+from IPython.core.debugger import set_trace
 
-BATCH_SIZE = 4
-NUM_WORKERS = 4
+
+BATCH_SIZE = 72
+NUM_WORKERS = 1
 
 def loader(dataf,labelf=None):
-    
+
     _begin_time = time.time()
     dset = ld = None
     chunk = np.load(dataf,encoding="bytes")
@@ -59,14 +61,14 @@ def loader(dataf,labelf=None):
     return ld
 
 def collate_train(pairs):
-
+ 
     #split column
     inputs, labels = zip(*pairs)
+
     #collect lengths data
     seqlens = [(seq.shape[0], i) for i,seq in enumerate(inputs)]
     #sort indices according descending lengths
     sorted_seqlens = sorted(seqlens, key=lambda x: x[0], reverse=True)
-
     seqs,labs,lens = [],[],[]
     for lenz, oidx in sorted_seqlens:
         lens.append(lenz)

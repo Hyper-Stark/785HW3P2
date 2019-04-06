@@ -15,22 +15,26 @@ from dataset import Dataset
 from utils import loader,details
 from ctc import Predictor 
 
+#import torch.multiprocessing
+#torch.multiprocessing.set_sharing_strategy('file_system')
  
 EPOCHS = 12
 TIME_ZONE = pytz.timezone("America/New_York")
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # load data
-# train_loader = loader("data/wsj0_train.npy","data/wsj0_train_merged_labels.npy")
-train_loader = loader("data/wsj0_dev.npy","data/wsj0_dev_merged_labels.npy")
+train_loader = loader("data/wsj0_train.npy","data/wsj0_train_merged_labels.npy")
+#train_loader = loader("data/wsj0_dev.npy","data/wsj0_dev_merged_labels.npy")
 valid_loader = loader("data/wsj0_dev.npy","data/wsj0_dev_merged_labels.npy")
 
 _begin_time = time.time()
 # prepare model
 model = Model(device = DEVICE)
+model.load_state_dict(torch.load("model.pt"))
+
 criterion = nn.CTCLoss()
 opt = optim.Adam(model.parameters(),lr=0.001,weight_decay=5e-4)
-# predictor = Predictor()
+predictor = Predictor()
 
 _end_time = time.time()
 print("prepare model: " + str(_end_time - _begin_time))
@@ -70,7 +74,8 @@ for epoch in range(EPOCHS):
 
         #accumulate loss
         nl = loss.item()
-        print("    batch: "+str(i)+" loss: "+str(nl))
+        if i % 16 == 0:
+            print("    ["+str(epoch)+","+str(i)+"] loss: "+str(nl))
         if not math.isnan(nl):
             ave_loss += nl
         
@@ -106,11 +111,11 @@ for epoch in range(EPOCHS):
 
         #count accuracy
         nl = loss.item()
-        print("    batch: "+str(i)+" loss: "+str(nl))
+        print("    ["+str(epoch)+","+str(vi)+"] loss: "+str(nl))
         if not math.isnan(nl):
             vloss += nl
         
-        vavdis += predictor.evaluateError(output, labels, len_of_labels)
+        #vavdis += predictor.evaluateError(output, labels, len_of_labels)
         vtotal += output.shape[0]
         vi += 1
 
@@ -118,7 +123,7 @@ for epoch in range(EPOCHS):
     details((_end_time - _begin_time), ave_loss/i, avg_dis/total, vloss/vi, vavdis/vtotal)
     _begin_time = time.time()
 
-    torch.save(model.state_dict(),"models/model-"+str(int(_begin_time))+str(int(vavdis/vtotal))+".pt")
+    torch.save(model.state_dict(),"models/model-"+str(int(_begin_time))+"-"+str(int(vavdis/vtotal))+".pt")
 
 
 result = []
